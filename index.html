@@ -36,41 +36,31 @@
         </div>
       </div>
     </nav>
+
     <!-- Sidebar -->
-    <aside
-      class="w-full flex flex-col sm:flex-row flex-grow overflow-hidden bg-lime-500"
-    >
+    <div class="w-full flex flex-col sm:flex-row flex-grow overflow-hidden">
       <div
         class="sm:w-1/4 md:1/4 w-full flex-shrink flex-grow-0 p-4 bg-green-500"
       >
-        <h3 class="font-semibold py-2">Lists</h3>
-        <div class="pl-2" id="lists"></div>
-
-        <div class="sticky top-0 p-4 pt-1 w-full">
-          <ul
-            class="flex sm:flex-col overflow-hidden content-center justify-between"
-            id="lists"
-          >
-            <!-- <li>New List</li> -->
-          </ul>
-        </div>
+        <h3 class="py-1 font-semibold text-xl">Lists</h3>
+        <div class="px-1" id="sidebar-div"></div>
       </div>
+
+      <!-- Main Page -->
       <main
         role="main"
         class="w-full h-full flex-grow p-6 overflow-auto bg-slate-200"
-        id="content"
       >
         <div id="selected-list-name" class="font-semibold text-2xl"></div>
-        <div id="selected-list-todos" class="p-2"></div>
+        <div id="selected-list-todos" class="p-2 outline-">
+          <- Select a List
+        </div>
 
-        <!-- <input
-            id="i01"
-            class="peer-checked:line-through bg-inherit p-2 w-full outline-none placeholder-transparent hover:placeholder-inherit focus:placeholder-inherit"
-            type="text"
-            placeholder="New Item..."
-          /> -->
+        <!-- Start Dialog -->
+
+        <!-- End Dialog -->
       </main>
-    </aside>
+    </div>
     <footer class="mt-auto p-3 flex justify-center bg-blue-500">
       This is a Footer
     </footer>
