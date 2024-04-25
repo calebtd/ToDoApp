@@ -34,12 +34,14 @@ function createNewItem() {
   listID.todos.newUUID = { content: "", status: false };
 }
 
+// Function to set a variable for the current list and rerender the page
 function selectList(listID) {
   selectedListID = listID;
   renderLists();
   renderSelectedList();
 }
 
+// Render all the lists into the sidebar
 function renderLists() {
   const sidebarDiv = document.getElementById("sidebar-div");
   sidebarDiv.innerHTML = "";
@@ -65,41 +67,118 @@ function renderLists() {
   save();
 }
 
-// This renders the items and such from the list that is selected
-function renderSelectedList() {
-  let selectedList = allLists[selectedListID];
+// Render the selected list name at the top of the main page
+function renderListName() {
+  const selectedListDiv = document.getElementById("selected-list-div");
+  selectedListDiv.innerHTML = "";
 
-  let nameDiv = document.getElementById("selected-list-name");
+  const nameDiv = document.createElement("div");
+  nameDiv.setAttribute("class", "mr-2 font-semibold text-3xl relative");
 
-  // Define the span to control the dynamic width of the input box
-  let nameSpan = document.createElement("span");
+  const nameSpan = document.createElement("span");
   nameSpan.setAttribute(
     "class",
-    "absolute height h-0 overflow-hidden whitespace-pre"
+    "p-1 absolute h-0 overflow-hidden whitespace-pre"
+  );
+  nameSpan.setAttribute("id", "list-name-span");
+  nameDiv.appendChild(nameSpan);
+
+  const nameInput = document.createElement("input");
+  nameInput.setAttribute("class", "p-1 min-w-10 bg-inherit");
+  nameInput.setAttribute("id", "list-name-input");
+  nameInput.setAttribute("type", "text");
+  nameInput.setAttribute("value", allLists[selectedListID].name);
+  nameInput.setAttribute("disabled", "");
+  nameDiv.appendChild(nameInput);
+  nameInput.addEventListener("input", resizeNameInput);
+  requestAnimationFrame(resizeNameInput); // run on the next cycle, otherwise it breaks
+
+  selectedListDiv.appendChild(nameDiv);
+}
+
+function resizeNameInput() {
+  const nameSpan = document.getElementById("list-name-span");
+  const nameInput = document.getElementById("list-name-input");
+  nameSpan.textContent = nameInput.value;
+  nameInput.style.width = nameSpan.offsetWidth + "px";
+}
+
+// Render the Dropdown Menu on the side of the List Name
+function renderDropdownMenu() {
+  const selectedListDiv = document.getElementById("selected-list-div");
+
+  const dropdownButton = document.createElement("button");
+  dropdownButton.setAttribute(
+    "class",
+    "p-1.5 rounded hover:bg-slate-300 relative"
+  );
+  const dropdownIcon = document.createElement("i");
+  dropdownIcon.setAttribute("class", "fa-solid fa-angle-down");
+  dropdownButton.appendChild(dropdownIcon);
+
+  // Dropdown menu container
+  const dropdownMenu = document.createElement("div");
+  dropdownMenu.setAttribute(
+    "class",
+    "absolute left-0 mt-2 w-32 bg-white rounded-lg shadow-lg hidden"
   );
 
-  let nameInput = document.createElement("input");
-  nameInput.setAttribute("class", "bg-inherit outline-offset-4");
-  nameInput.setAttribute("id", "name_" + selectedListID);
-  nameInput.setAttribute("type", "text");
-  nameInput.setAttribute("value", selectedList.name);
-  nameInput.setAttribute("disabled", "");
+  // Dropdown menu options
+  const renameOption = document.createElement("button");
+  renameOption.setAttribute(
+    "class",
+    "block p-2 text-gray-800 hover:bg-neutral-600/25 w-full text-left rounded-t-lg"
+  );
+  renameOption.setAttribute("id", "rename-button");
+  renameOption.textContent = "Rename";
+  renameOption.addEventListener("click", renameSelectedList);
 
-  nameDiv.innerHTML = "";
-  nameDiv.appendChild(nameSpan);
-  nameDiv.appendChild(nameInput);
+  const deleteOption = document.createElement("button");
+  deleteOption.setAttribute(
+    "class",
+    "block p-2 text-gray-800 hover:bg-gray-200 w-full text-left rounded-b-lg"
+  );
+  deleteOption.textContent = "Delete";
+  deleteOption.addEventListener("click", deleteSelectedList);
 
-  nameInput.addEventListener("input", resizeInput);
-  resizeInput();
-  function resizeInput() {
-    nameSpan.textContent = nameInput.value;
-    nameInput.style.width = nameSpan.offsetWidth + "px";
-  }
+  // Append options to dropdown menu
+  dropdownMenu.appendChild(renameOption);
+  dropdownMenu.appendChild(deleteOption);
 
-  let todosDiv = document.getElementById("selected-list-todos");
+  // Append dropdown menu to button container
+  dropdownButton.appendChild(dropdownMenu);
+
+  // Toggle dropdown menu visibility
+  dropdownButton.addEventListener("click", () => {
+    dropdownMenu.classList.toggle("hidden");
+  });
+
+  selectedListDiv.appendChild(dropdownButton);
+
+  // Hide dropdown menu when clicking outside
+  document.addEventListener("click", (event) => {
+    const isClickInsideDropdown =
+      dropdownButton.contains(event.target) ||
+      dropdownMenu.contains(event.target);
+    if (!isClickInsideDropdown) {
+      dropdownMenu.classList.add("hidden");
+    }
+  });
+}
+
+// This renders the main page of items
+function renderSelectedList() {
+  const selectedList = allLists[selectedListID];
+
+  renderListName();
+  renderDropdownMenu();
+
+  let listNameDiv = document.getElementById("selected-list-name");
+
+  const todosDiv = document.getElementById("selected-list-todos");
   todosDiv.innerHTML = "";
   for (let item in selectedList.todos) {
-    itemElement = createItemElement(
+    itemElement = renderItemElements(
       item,
       selectedList.todos[item].content,
       selectedList.todos[item].status
@@ -110,20 +189,60 @@ function renderSelectedList() {
 }
 
 //
-function renameSelectedList() {}
+function renameSelectedList() {
+  const selectedList = allLists[selectedListID];
+  const inputBox = document.getElementById("list-name-input");
+  inputBox.disabled = false;
+  let len = inputBox.value.length;
+  inputBox.focus();
+  inputBox.setSelectionRange(len, len);
+
+  // Listen for the Enter key, and then save
+  inputBox.addEventListener("keydown", function (event) {
+    if (event.key === "Enter") {
+      saveListName();
+    }
+  });
+
+  // Listen for clicking anywhere else
+  document.addEventListener("click", (event) => {
+    const renameOption = document.getElementById("rename-button");
+    const isClickInside =
+      inputBox.contains(event.target) || renameOption.contains(event.target);
+    if (!isClickInside) {
+      saveListName();
+    }
+  });
+
+  // Disable the box, which in turns blurs, and then save the new name
+  function saveListName() {
+    inputBox.disabled = true;
+    inputBox.value = inputBox.value.trim();
+    selectedList.name = inputBox.value;
+    resizeNameInput();
+    save();
+  }
+}
+
+function deleteSelectedList() {}
 
 // Create the element for each todo item
-function createItemElement(id, content, status) {
+function renderItemElements(id, content, status) {
   const div = document.createElement("div");
-  div.setAttribute("class", "flex items-center mb-2 border border-slate-400");
+  div.setAttribute(
+    "class",
+    "flex items-center mb-2 border border-slate-400 rounded"
+  );
   div.setAttribute("id", id);
 
+  // Everything for the Checkbox
   const checkbox = document.createElement("input");
   checkbox.setAttribute("class", "m-2 peer");
   checkbox.setAttribute("id", "checkbox_" + id);
   checkbox.setAttribute("type", "checkbox");
   checkbox.setAttribute("onclick", `handleCheckbox('${id}')`);
 
+  // Everything for the actual Input box
   const input = document.createElement("input");
   input.setAttribute(
     "class",
@@ -135,6 +254,7 @@ function createItemElement(id, content, status) {
   input.setAttribute("disabled", "");
   input.setAttribute("onblur", `saveItem('${id}')`);
 
+  // Everything for the Edit Button
   const editButton = document.createElement("button");
   editButton.setAttribute(
     "class",
@@ -144,6 +264,7 @@ function createItemElement(id, content, status) {
   editButton.setAttribute("onclick", `editItem('${id}')`);
   editButton.innerText = "Edit";
 
+  // Everything for the Save Button
   const saveButton = document.createElement("button");
   saveButton.setAttribute(
     "class",
@@ -153,6 +274,7 @@ function createItemElement(id, content, status) {
   saveButton.setAttribute("onclick", `saveItem('${id}')`);
   saveButton.innerText = "Save";
 
+  // Everything for the Delete Button
   const deleteButton = document.createElement("button");
   deleteButton.setAttribute("class", "p-1.5 mx-3 rounded hover:bg-slate-300");
   deleteButton.setAttribute("onclick", `removeItem('${id}')`);
@@ -160,15 +282,19 @@ function createItemElement(id, content, status) {
   icon.setAttribute("class", "fa-solid fa-x");
   deleteButton.appendChild(icon);
 
+  // Check the checkbox if the item's "status" is true
   if (status) {
     checkbox.setAttribute("checked", "");
   }
+
+  // Listen for enter in the Input Box to press the Save Button
   input.addEventListener("keydown", function (event) {
     if (event.key === "Enter") {
       saveButton.click();
     }
   });
 
+  // Get everything ready to throw on the page!
   div.appendChild(checkbox);
   div.appendChild(input);
   div.appendChild(editButton);
