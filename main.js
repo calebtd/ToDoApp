@@ -22,21 +22,26 @@ function save() {
 }
 
 // Generate new list object within the 'allLists' object
-function createNewList(name) {
+function createNewList() {
   newID = crypto.randomUUID();
-  allLists[newID] = { name: name, todos: {} };
-  renderLists();
+  allLists[newID] = { name: "My New List", todos: {} };
+  selectList(newID);
 }
 
 // Create a new item object within a given todo object
 function createNewItem() {
-  newUUID = crypto.randomUUID();
-  listID.todos.newUUID = { content: "", status: false };
+  newID = crypto.randomUUID();
+  allLists[selectedListID].todos[newID] = { content: "", status: false };
+  renderSelectedList();
+  editItem(newID);
 }
 
 // Function to set a variable for the current list and rerender the page
 function selectList(listID) {
   selectedListID = listID;
+  if (selectedListID !== null) {
+    localStorage.setItem("selectedListID", listID);
+  }
   renderLists();
   renderSelectedList();
 }
@@ -50,7 +55,7 @@ function renderLists() {
     const button = document.createElement("button");
     button.setAttribute(
       "class",
-      "px-2 py-1 mb-0.5 rounded w-full text-left hover:bg-neutral-600/25"
+      "px-2 py-1 mb-0.5 rounded w-full text-left hover:bg-neutral-600/25 h-8"
     );
     // button.setAttribute("id", listID);
     button.setAttribute("onclick", `selectList('${listID}')`);
@@ -63,6 +68,19 @@ function renderLists() {
 
     sidebarDiv.appendChild(button);
   }
+
+  const newListDiv = document.createElement("div");
+  newListDiv.setAttribute("class", "flex justify-center");
+  const newListButton = document.createElement("button");
+  newListButton.setAttribute(
+    "class",
+    "bg-slate-500 hover:bg-slate-600 p-1 px-2 mt-1 rounded"
+  );
+  newListButton.setAttribute("onclick", `createNewList()`);
+  newListButton.innerText = "New List";
+
+  newListDiv.appendChild(newListButton);
+  sidebarDiv.appendChild(newListDiv);
 
   save();
 }
@@ -84,7 +102,7 @@ function renderListName() {
   nameDiv.appendChild(nameSpan);
 
   const nameInput = document.createElement("input");
-  nameInput.setAttribute("class", "p-1 min-w-10 bg-inherit");
+  nameInput.setAttribute("class", "p-1 min-w-10 bg-inherit opacity-100");
   nameInput.setAttribute("id", "list-name-input");
   nameInput.setAttribute("type", "text");
   nameInput.setAttribute("value", allLists[selectedListID].name);
@@ -168,24 +186,40 @@ function renderDropdownMenu() {
 
 // This renders the main page of items
 function renderSelectedList() {
-  const selectedList = allLists[selectedListID];
+  if (selectedListID == null) {
+    const nameDiv = document.getElementById("selected-list-div");
+    const todosDiv = document.getElementById("selected-list-todos");
+    nameDiv.replaceChildren();
+    todosDiv.replaceChildren("Go ahead and select a list");
+  } else {
+    const selectedList = allLists[selectedListID];
 
-  renderListName();
-  renderDropdownMenu();
+    renderListName();
+    renderDropdownMenu();
 
-  let listNameDiv = document.getElementById("selected-list-name");
+    const todosDiv = document.getElementById("selected-list-todos");
+    todosDiv.innerHTML = "";
+    for (let item in selectedList.todos) {
+      itemElement = renderItemElements(
+        item,
+        selectedList.todos[item].content,
+        selectedList.todos[item].status
+      );
+      todosDiv.appendChild(itemElement);
+    }
 
-  const todosDiv = document.getElementById("selected-list-todos");
-  todosDiv.innerHTML = "";
-  for (let item in selectedList.todos) {
-    itemElement = renderItemElements(
-      item,
-      selectedList.todos[item].content,
-      selectedList.todos[item].status
+    const newItemButton = document.createElement("button");
+    newItemButton.setAttribute(
+      "class",
+      "bg-blue-500 hover:bg-blue-700 text-white p-1.5 px-3 mt-1 rounded"
     );
-    todosDiv.appendChild(itemElement);
+    newItemButton.setAttribute("onclick", `createNewItem()`);
+    newItemButton.innerText = "New Item";
+
+    todosDiv.appendChild(newItemButton);
+
+    save();
   }
-  save();
 }
 
 //
@@ -219,12 +253,55 @@ function renameSelectedList() {
     inputBox.disabled = true;
     inputBox.value = inputBox.value.trim();
     selectedList.name = inputBox.value;
-    resizeNameInput();
     save();
+    resizeNameInput();
+    renderLists();
   }
 }
 
-function deleteSelectedList() {}
+function deleteSelectedList() {
+  const modalHTML = `
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+    <div class="fixed inset-0 z-10 flex items-center justify-center">
+      <div class="relative bg-white rounded-lg max-w-md w-full p-6 m-2">
+        <div class="text-center">
+          <h3 class="text-lg font-medium text-gray-900">Delete '${allLists[selectedListID].name}'?</h3>
+          <div class="mt-2 text-sm text-gray-500">Are you sure you want to delete this list? This action cannot be undone.</div>
+        </div>
+        <div class="mt-4 flex justify-center">
+          <button id="confirmDeleteButton" class="bg-red-500 text-white py-2 px-4 rounded-md mr-2">Delete</button>
+          <button id="cancelDeleteButton" class="bg-gray-200 text-gray-700 py-2 px-4 rounded-md">Cancel</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Append modal HTML to body
+  const modalContainer = document.createElement("div");
+  modalContainer.innerHTML = modalHTML;
+  document.body.appendChild(modalContainer);
+
+  // Add event listeners
+  const confirmDeleteButton = document.getElementById("confirmDeleteButton");
+  const cancelDeleteButton = document.getElementById("cancelDeleteButton");
+
+  confirmDeleteButton.addEventListener("click", () => {
+    modalContainer.remove();
+
+    delete allLists[selectedListID];
+    selectedListID = null;
+    renderLists();
+    renderSelectedList();
+
+    save();
+    localStorage.removeItem("selectedListID");
+  });
+
+  cancelDeleteButton.addEventListener("click", () => {
+    // Remove modal from DOM
+    modalContainer.remove();
+  });
+}
 
 // Create the element for each todo item
 function renderItemElements(id, content, status) {
@@ -237,7 +314,7 @@ function renderItemElements(id, content, status) {
 
   // Everything for the Checkbox
   const checkbox = document.createElement("input");
-  checkbox.setAttribute("class", "m-2 peer");
+  checkbox.setAttribute("class", "m-2 peer min-h-6");
   checkbox.setAttribute("id", "checkbox_" + id);
   checkbox.setAttribute("type", "checkbox");
   checkbox.setAttribute("onclick", `handleCheckbox('${id}')`);
@@ -246,7 +323,7 @@ function renderItemElements(id, content, status) {
   const input = document.createElement("input");
   input.setAttribute(
     "class",
-    "peer-checked:line-through bg-inherit m-1 p-1 w-full rounded outline-1"
+    "peer-checked:line-through bg-inherit m-1 p-1 w-full rounded outline-1 opacity-100"
   );
   input.setAttribute("id", "input_" + id);
   input.setAttribute("type", "text");
@@ -258,7 +335,7 @@ function renderItemElements(id, content, status) {
   const editButton = document.createElement("button");
   editButton.setAttribute(
     "class",
-    "bg-blue-500 hover:bg-blue-700 text-white p-1.5 px-3 rounded"
+    "bg-blue-500 hover:bg-blue-700 text-white p-1 w-14 rounded"
   );
   editButton.setAttribute("id", "editButton_" + id);
   editButton.setAttribute("onclick", `editItem('${id}')`);
@@ -268,7 +345,7 @@ function renderItemElements(id, content, status) {
   const saveButton = document.createElement("button");
   saveButton.setAttribute(
     "class",
-    "bg-blue-500 hover:bg-blue-700 text-white p-1.5 px-3 rounded hidden"
+    "bg-blue-500 hover:bg-blue-700 text-white p-1 w-14 rounded hidden"
   );
   saveButton.setAttribute("id", "saveButton_" + id);
   saveButton.setAttribute("onclick", `saveItem('${id}')`);
@@ -348,50 +425,14 @@ function removeItem(itemID) {
 
 // -- CODE THAT RUNS --
 
-let passDefaultLists = false;
-let passSelectedList = true;
-
 let allLists = JSON.parse(localStorage.getItem("allLists"));
-
-let selectedListID = null;
-
-if (passDefaultLists) {
-  allLists = {
-    uuid1: {
-      name: "New List",
-      todos: {
-        uuid2: {
-          content: "First Item",
-          status: true,
-        },
-      },
-    },
-    uuid3: {
-      name: "Second List",
-      todos: {
-        uuid4: {
-          content: "My Todo Item",
-          status: false,
-        },
-        uuid5: {
-          content: "My next todo item",
-          status: true,
-        },
-      },
-    },
-  };
-}
-
-if (passSelectedList) {
-  selectedListID = Object.keys(allLists)[1];
-  renderSelectedList();
-}
+let selectedListID = localStorage.getItem("selectedListID");
 
 if (allLists == null) {
   allLists = {};
-  createNewList("New List");
+  createNewList("My First List");
 }
 
-renderLists();
+selectList(selectedListID);
 
 // localStorage.clear();
