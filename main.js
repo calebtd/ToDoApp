@@ -1,21 +1,3 @@
-// let oldList = {
-//   'uuid': {
-//     name: "Initial List",
-//     items: [
-//       { content: "Add the first item", status: false },
-//       { content: "Make the footer blue", status: true },
-//     ],
-//   },
-//   2: {
-//     name: "Screens",
-//     items: [
-//       { content: "Built-in", status: true },
-//       { content: "2752H", status: true },
-//       { content: "S24E450", status: false },
-//     ],
-//   },
-// };
-
 // Save current 'allLists' object to Local Storage
 function save() {
   localStorage.setItem("allLists", JSON.stringify(allLists));
@@ -55,7 +37,7 @@ function renderLists() {
     const button = document.createElement("button");
     button.setAttribute(
       "class",
-      "px-2 py-1 mb-0.5 rounded w-full text-left hover:bg-neutral-600/25 h-8"
+      "px-2 py-1 mb-0.5 rounded w-full text-left hover:bg-neutral-600/25 min-h-8"
     );
     // button.setAttribute("id", listID);
     button.setAttribute("onclick", `selectList('${listID}')`);
@@ -434,5 +416,11 @@ if (allLists == null) {
 }
 
 selectList(selectedListID);
+
+document
+  .getElementById("sidebar-toggle-button")
+  .addEventListener("click", function () {
+    document.getElementById("sidebar").classList.toggle("-translate-x-full");
+  });
 
 // localStorage.clear();
