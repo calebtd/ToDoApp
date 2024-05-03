@@ -18,7 +18,7 @@ function createNewItem() {
   editItem(newID);
 }
 
-// Function to set a variable for the current list and rerender the page
+// Function to set a variable for the current list and render the page
 function selectList(listID) {
   selectedListID = listID;
   if (selectedListID !== null) {
@@ -33,6 +33,7 @@ function renderLists() {
   const sidebarDiv = document.getElementById("sidebar-div");
   sidebarDiv.innerHTML = "";
 
+  // Iterate for each List as buttons
   for (let listID in allLists) {
     const button = document.createElement("button");
     button.setAttribute(
@@ -42,6 +43,7 @@ function renderLists() {
     button.setAttribute("onclick", `selectList('${listID}')`);
     button.innerText = allLists[listID].name;
 
+    // Handle the coloring for the selected list button
     if (selectedListID === listID) {
       button.classList.remove("hover:bg-eucalyptus-400/50");
       button.classList.add("bg-eucalyptus-500/50");
@@ -50,8 +52,8 @@ function renderLists() {
     sidebarDiv.appendChild(button);
   }
 
+  // New List button at the bottom of the sidebar
   const newListDiv = document.createElement("div");
-  // newListDiv.setAttribute("class", "flex justify-center");
   const newListButton = document.createElement("button");
   newListButton.setAttribute(
     "class",
@@ -70,6 +72,11 @@ function renderLists() {
 function renderListName() {
   const selectedListDiv = document.getElementById("selected-list-div");
   selectedListDiv.innerHTML = "";
+
+  /* I wanted the input box to be as wide as the text inside it,
+  I had to go through some weird hoops to make that happen.
+  Basically there's a hidden span behind the input, and it
+  matches the width. That way it can keep it uniform across fonts */
 
   const nameDiv = document.createElement("div");
   nameDiv.setAttribute(
@@ -98,6 +105,7 @@ function renderListName() {
   selectedListDiv.appendChild(nameDiv);
 }
 
+// Here's the function that calls on every keypress, changes the input width
 function resizeNameInput() {
   const nameSpan = document.getElementById("list-name-span");
   const nameInput = document.getElementById("list-name-input");
@@ -160,7 +168,7 @@ function renderDropdownMenu() {
 
   selectedListDiv.appendChild(dropdownButton);
 
-  // Hide dropdown menu when clicking outside
+  // Hide dropdown menu when clicking outside of the element
   document.addEventListener("click", (event) => {
     const isClickInsideDropdown =
       dropdownButton.contains(event.target) ||
@@ -177,6 +185,7 @@ function renderSelectedList() {
     const nameDiv = document.getElementById("selected-list-div");
     const todosDiv = document.getElementById("selected-list-todos");
 
+    // Message for when there's no list selected
     message = document.createElement("div");
     message.setAttribute(
       "class",
@@ -192,6 +201,7 @@ function renderSelectedList() {
     renderListName();
     renderDropdownMenu();
 
+    // Interate through each list item and create the elements for them
     const todosDiv = document.getElementById("selected-list-todos");
     todosDiv.innerHTML = "";
     for (let item in selectedList.todos) {
@@ -203,6 +213,7 @@ function renderSelectedList() {
       todosDiv.appendChild(itemElement);
     }
 
+    // New Item button at the bottom of the page
     const newItemButton = document.createElement("button");
     newItemButton.setAttribute(
       "class",
@@ -217,7 +228,7 @@ function renderSelectedList() {
   }
 }
 
-//
+// Function for renaming the selected list, access it through the dropdown menu
 function renameSelectedList() {
   const selectedList = allLists[selectedListID];
   const inputBox = document.getElementById("list-name-input");
@@ -254,6 +265,7 @@ function renameSelectedList() {
   }
 }
 
+// Here's a pop up dialog for confirming deleting a list. Gotta thank ChatGPT for this one
 function deleteSelectedList() {
   const modalHTML = `
     <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
@@ -418,28 +430,27 @@ function removeItem(itemID) {
   save();
 }
 
-// -- CODE THAT RUNS --
+// -- CODE THAT RUNS ON PAGE LOAD --
 
+// Pull from LocalStorage
 let allLists = JSON.parse(localStorage.getItem("allLists"));
 let selectedListID = localStorage.getItem("selectedListID");
 
+// Create a default list if no storage
 if (allLists == null) {
   allLists = {};
   createNewList("My First List");
 }
 
+// Renderrrrr
 selectList(selectedListID);
 
-// document
-//   .getElementById("sidebar-toggle-button")
-//   .addEventListener("click", function () {
-//     document.getElementById("sidebar").classList.toggle("-translate-x-full");
-//   });
-
+// Handle closing and opening the sidebar in mobile view
 document.addEventListener("click", function (event) {
   const sidebar = document.getElementById("sidebar");
   const sidebarToggleButton = document.getElementById("sidebar-toggle-button");
 
+  // Press the sidebar toggle button
   if (sidebarToggleButton.contains(event.target)) {
     sidebar.classList.toggle("-translate-x-full");
   }
@@ -452,5 +463,3 @@ document.addEventListener("click", function (event) {
     sidebar.classList.add("-translate-x-full");
   }
 });
-
-// localStorage.clear();
