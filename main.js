@@ -37,26 +37,25 @@ function renderLists() {
     const button = document.createElement("button");
     button.setAttribute(
       "class",
-      "px-2 py-1 mb-0.5 rounded w-full text-left hover:bg-neutral-600/25 min-h-8"
+      "w-full min-h-8 mb-0.5 px-2 py-1 text-left text-white rounded hover:bg-eucalyptus-400/50"
     );
-    // button.setAttribute("id", listID);
     button.setAttribute("onclick", `selectList('${listID}')`);
     button.innerText = allLists[listID].name;
 
     if (selectedListID === listID) {
-      button.classList.remove("hover:bg-neutral-600/25");
-      button.classList.add("bg-neutral-600/45");
+      button.classList.remove("hover:bg-eucalyptus-400/50");
+      button.classList.add("bg-eucalyptus-500/50");
     }
 
     sidebarDiv.appendChild(button);
   }
 
   const newListDiv = document.createElement("div");
-  newListDiv.setAttribute("class", "flex justify-center");
+  // newListDiv.setAttribute("class", "flex justify-center");
   const newListButton = document.createElement("button");
   newListButton.setAttribute(
     "class",
-    "bg-slate-500 hover:bg-slate-600 p-1 px-2 mt-1 rounded"
+    "mt-2 p-1 px-2 text-white rounded bg-bay-of-many-700 hover:bg-bay-of-many-600 "
   );
   newListButton.setAttribute("onclick", `createNewList()`);
   newListButton.innerText = "New List";
@@ -73,7 +72,10 @@ function renderListName() {
   selectedListDiv.innerHTML = "";
 
   const nameDiv = document.createElement("div");
-  nameDiv.setAttribute("class", "mr-2 font-semibold text-3xl relative");
+  nameDiv.setAttribute(
+    "class",
+    "mr-2 relative font-semibold text-3xl text-eucalyptus-800"
+  );
 
   const nameSpan = document.createElement("span");
   nameSpan.setAttribute(
@@ -113,7 +115,10 @@ function renderDropdownMenu() {
     "p-1.5 rounded hover:bg-slate-300 relative"
   );
   const dropdownIcon = document.createElement("i");
-  dropdownIcon.setAttribute("class", "fa-solid fa-angle-down");
+  dropdownIcon.setAttribute(
+    "class",
+    "fa-solid fa-angle-down text-eucalyptus-800"
+  );
   dropdownButton.appendChild(dropdownIcon);
 
   // Dropdown menu container
@@ -171,8 +176,16 @@ function renderSelectedList() {
   if (selectedListID == null) {
     const nameDiv = document.getElementById("selected-list-div");
     const todosDiv = document.getElementById("selected-list-todos");
+
+    message = document.createElement("div");
+    message.setAttribute(
+      "class",
+      "flex justify-center mt-4 text-eucalyptus-900 text-xl"
+    );
+    message.innerHTML = `Select a list from the sidebar`;
+
     nameDiv.replaceChildren();
-    todosDiv.replaceChildren("Go ahead and select a list");
+    todosDiv.replaceChildren(message);
   } else {
     const selectedList = allLists[selectedListID];
 
@@ -193,7 +206,7 @@ function renderSelectedList() {
     const newItemButton = document.createElement("button");
     newItemButton.setAttribute(
       "class",
-      "bg-blue-500 hover:bg-blue-700 text-white p-1.5 px-3 mt-1 rounded"
+      "bg-bay-of-many-700 hover:bg-bay-of-many-600 text-white p-1.5 px-3 mt-2 rounded"
     );
     newItemButton.setAttribute("onclick", `createNewItem()`);
     newItemButton.innerText = "New Item";
@@ -245,14 +258,14 @@ function deleteSelectedList() {
   const modalHTML = `
     <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
     <div class="fixed inset-0 z-10 flex items-center justify-center">
-      <div class="relative bg-white rounded-lg max-w-md w-full p-6 m-2">
+      <div class="relative m-2 w-full max-w-md rounded-lg bg-white p-6">
         <div class="text-center">
           <h3 class="text-lg font-medium text-gray-900">Delete '${allLists[selectedListID].name}'?</h3>
           <div class="mt-2 text-sm text-gray-500">Are you sure you want to delete this list? This action cannot be undone.</div>
         </div>
         <div class="mt-4 flex justify-center">
-          <button id="confirmDeleteButton" class="bg-red-500 text-white py-2 px-4 rounded-md mr-2">Delete</button>
-          <button id="cancelDeleteButton" class="bg-gray-200 text-gray-700 py-2 px-4 rounded-md">Cancel</button>
+          <button id="confirmDeleteButton" class="mr-2 rounded-md bg-red-500 px-4 py-2 text-white">Delete</button>
+          <button id="cancelDeleteButton" class="rounded-md bg-gray-200 px-4 py-2 text-gray-700">Cancel</button>
         </div>
       </div>
     </div>
@@ -305,7 +318,7 @@ function renderItemElements(id, content, status) {
   const input = document.createElement("input");
   input.setAttribute(
     "class",
-    "peer-checked:line-through bg-inherit m-1 p-1 w-full rounded outline-1 opacity-100"
+    "peer-checked:line-through bg-inherit m-1 p-1 w-full rounded outline-1 opacity-100 text-eucalyptus-800"
   );
   input.setAttribute("id", "input_" + id);
   input.setAttribute("type", "text");
@@ -317,7 +330,7 @@ function renderItemElements(id, content, status) {
   const editButton = document.createElement("button");
   editButton.setAttribute(
     "class",
-    "bg-blue-500 hover:bg-blue-700 text-white p-1 w-14 rounded"
+    "bg-gradient-to-b from-bay-of-many-700 from-99% to-eucalyptus-300 hover:to-eucalyptus-200 text-bay-of-many-100 p-1 min-w-10 rounded "
   );
   editButton.setAttribute("id", "editButton_" + id);
   editButton.setAttribute("onclick", `editItem('${id}')`);
@@ -327,7 +340,7 @@ function renderItemElements(id, content, status) {
   const saveButton = document.createElement("button");
   saveButton.setAttribute(
     "class",
-    "bg-blue-500 hover:bg-blue-700 text-white p-1 w-14 rounded hidden"
+    "bg-gradient-to-b to-bay-of-many-700 from-99% from-eucalyptus-300 hover:to-bay-of-many-500 text-bay-of-many-100 p-1 min-w-10 rounded hidden"
   );
   saveButton.setAttribute("id", "saveButton_" + id);
   saveButton.setAttribute("onclick", `saveItem('${id}')`);
@@ -417,10 +430,27 @@ if (allLists == null) {
 
 selectList(selectedListID);
 
-document
-  .getElementById("sidebar-toggle-button")
-  .addEventListener("click", function () {
-    document.getElementById("sidebar").classList.toggle("-translate-x-full");
-  });
+// document
+//   .getElementById("sidebar-toggle-button")
+//   .addEventListener("click", function () {
+//     document.getElementById("sidebar").classList.toggle("-translate-x-full");
+//   });
+
+document.addEventListener("click", function (event) {
+  const sidebar = document.getElementById("sidebar");
+  const sidebarToggleButton = document.getElementById("sidebar-toggle-button");
+
+  if (sidebarToggleButton.contains(event.target)) {
+    sidebar.classList.toggle("-translate-x-full");
+  }
+
+  // Check if the click occurred outside the sidebar and sidebar toggle button
+  if (
+    !sidebar.contains(event.target) &&
+    !sidebarToggleButton.contains(event.target)
+  ) {
+    sidebar.classList.add("-translate-x-full");
+  }
+});
 
 // localStorage.clear();
